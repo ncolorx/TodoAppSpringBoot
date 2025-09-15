@@ -7,10 +7,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.ncolorx.todo_app.Controller.TodoController;
-import ru.ncolorx.todo_app.DTO.CreateTaskRequest;
-import ru.ncolorx.todo_app.DTO.TaskResponse;
-import ru.ncolorx.todo_app.Service.TodoService;
+import ru.ncolorx.todo_app.controller.TodoController;
+import ru.ncolorx.todo_app.dto.CreateTodoRequest;
+import ru.ncolorx.todo_app.dto.TodoResponse;
+import ru.ncolorx.todo_app.service.TodoService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,16 +34,16 @@ class TodoControllerTest {
 
     @Test
     void testCreateTask() throws Exception {
-        CreateTaskRequest request = new CreateTaskRequest();
+        CreateTodoRequest request = new CreateTodoRequest();
         request.setTitle("Controller Task");
         request.setDescription("desc");
         request.setDueDate(LocalDate.now().plusDays(1));
 
-        TaskResponse response = new TaskResponse();
+        TodoResponse response = new TodoResponse();
         response.setId(1L);
         response.setTitle("Controller Task");
 
-        when(service.createTask(any(CreateTaskRequest.class))).thenReturn(response);
+        when(service.createTask(any(CreateTodoRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/task/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,7 +54,7 @@ class TodoControllerTest {
 
     @Test
     void testGetAllTasks() throws Exception {
-        TaskResponse t = new TaskResponse();
+        TodoResponse t = new TodoResponse();
         t.setId(1L);
         t.setTitle("Task1");
 

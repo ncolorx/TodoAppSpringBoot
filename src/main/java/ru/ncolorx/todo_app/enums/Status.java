@@ -1,4 +1,4 @@
-package ru.ncolorx.todo_app.Enum;
+package ru.ncolorx.todo_app.enums;
 
 public enum Status {
     TODO,

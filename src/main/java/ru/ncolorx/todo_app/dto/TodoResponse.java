@@ -1,11 +1,11 @@
-package ru.ncolorx.todo_app.DTO;
+package ru.ncolorx.todo_app.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TaskResponse {
+public class TodoResponse {
     private Long id;
     private String title;
     private String description;

@@ -1,30 +1,34 @@
-package ru.ncolorx.todo_app.CustomException;
+package ru.ncolorx.todo_app.controllerAdvice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.ncolorx.todo_app.exceptions.InvalidTodoException;
+import ru.ncolorx.todo_app.exceptions.TodoAlreadyCompletedException;
+import ru.ncolorx.todo_app.exceptions.TodoNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<String> handleException(TaskNotFoundException e) {
+    @ExceptionHandler(TodoNotFoundException.class)
+    public ResponseEntity<String> handleException(TodoNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
-    @ExceptionHandler(InvalidDueDateException.class)
-    public ResponseEntity<String> handleException(InvalidDueDateException e) {
+
+    @ExceptionHandler(InvalidTodoException.class)
+    public ResponseEntity<String> handleException(InvalidTodoException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
-    @ExceptionHandler(InvalidTaskTitleException.class)
-    public ResponseEntity<String> handleException(InvalidTaskTitleException e) {
+    @ExceptionHandler(TodoAlreadyCompletedException.class)
+    public ResponseEntity<String> handleException(TodoAlreadyCompletedException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
-    @ExceptionHandler(TaskAlreadyCompletedException.class)
-    public ResponseEntity<String> handleException(TaskAlreadyCompletedException e) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleException(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 

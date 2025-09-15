@@ -1,8 +1,8 @@
-package ru.ncolorx.todo_app.Entity;
+package ru.ncolorx.todo_app.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import ru.ncolorx.todo_app.Enum.Status;
+import ru.ncolorx.todo_app.enums.Status;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -5,29 +5,30 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import ru.ncolorx.todo_app.CustomException.InvalidDueDateException;
-import ru.ncolorx.todo_app.CustomException.InvalidTaskTitleException;
-import ru.ncolorx.todo_app.CustomException.TaskAlreadyCompletedException;
-import ru.ncolorx.todo_app.CustomException.TaskNotFoundException;
-import ru.ncolorx.todo_app.DTO.CreateTaskRequest;
-import ru.ncolorx.todo_app.DTO.TaskResponse;
-import ru.ncolorx.todo_app.DTO.UpdateTaskRequest;
-import ru.ncolorx.todo_app.Entity.TodoEntity;
-import ru.ncolorx.todo_app.Enum.Status;
-import ru.ncolorx.todo_app.Mapper.TodoMapper;
-import ru.ncolorx.todo_app.Repository.TodoRepository;
-import ru.ncolorx.todo_app.Service.TodoService;
+import ru.ncolorx.todo_app.dto.CreateTodoRequest;
+import ru.ncolorx.todo_app.dto.TodoResponse;
+import ru.ncolorx.todo_app.dto.UpdateTodoRequest;
+import ru.ncolorx.todo_app.entity.TodoEntity;
+import ru.ncolorx.todo_app.enums.Status;
+import ru.ncolorx.todo_app.exceptions.InvalidTodoException;
+import ru.ncolorx.todo_app.exceptions.TodoAlreadyCompletedException;
+import ru.ncolorx.todo_app.exceptions.TodoNotFoundException;
+import ru.ncolorx.todo_app.mapper.TodoMapper;
+import ru.ncolorx.todo_app.repository.TodoRepository;
+import ru.ncolorx.todo_app.service.TodoService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class TodoServiceTest {
+public class TodoServiceTest {
 
     @Mock
     private TodoRepository repository;
@@ -39,77 +40,184 @@ class TodoServiceTest {
     private TodoService service;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    void testCreateTaskInvalidDueDate() {
-        CreateTaskRequest request = new CreateTaskRequest();
-        request.setTitle("Task");
-        request.setDescription("desc");
-        request.setDueDate(LocalDate.now().minusDays(1));
-
-        assertThrows(InvalidDueDateException.class, () -> service.createTask(request));
-    }
-
-    @Test
-    void testCreateTaskInvalidTitle() {
-        CreateTaskRequest request = new CreateTaskRequest();
-        request.setTitle(" ");
-        request.setDescription(null);
+    void createTaskSuccess() {
+        CreateTodoRequest request = new CreateTodoRequest();
+        request.setTitle("title");
+        request.setDescription("description");
         request.setDueDate(LocalDate.now().plusDays(1));
 
-        assertThrows(InvalidTaskTitleException.class, () -> service.createTask(request));
+        TodoEntity entity = new TodoEntity();
+        entity.setId(1L);
+
+        TodoResponse response = new TodoResponse();
+
+        when(mapper.fromCreateTaskRequest(request)).thenReturn(entity);
+        when(repository.save(any(TodoEntity.class))).thenReturn(entity);
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        TodoResponse result = service.createTask(request);
+
+        assertThat(result).isEqualTo(response);
+        verify(repository).save(entity);
     }
 
     @Test
-    void testUpdateTaskAlreadyCompleted() {
+    void createTaskInvalidTitle() {
+        CreateTodoRequest request = new CreateTodoRequest();
+        request.setTitle(" ");
+        request.setDescription("description");
+        request.setDueDate(LocalDate.now().plusDays(1));
+
+        assertThrows(InvalidTodoException.class, () -> service.createTask(request));
+
+    }
+
+    @Test
+    void createTaskInvalidDueDate() {
+        CreateTodoRequest request = new CreateTodoRequest();
+        request.setTitle("title");
+        request.setDescription("description");
+        request.setDueDate(LocalDate.now().minusDays(1));
+
+        assertThrows(InvalidTodoException.class, () -> service.createTask(request));
+    }
+
+    @Test
+    void getAllTasksSuccess() {
+        TodoEntity entity = new TodoEntity();
+        TodoResponse response = new TodoResponse();
+
+        when(repository.findAll()).thenReturn(List.of(entity));
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        List<TodoResponse> result = service.getAllTasks();
+
+        assertThat(result).containsExactly(response);
+    }
+
+    @Test
+    void getTasksByStatusSuccess() {
+        TodoEntity entity = new TodoEntity();
+        entity.setStatus(Status.TODO);
+        TodoResponse response = new TodoResponse();
+
+        when(repository.findByStatus(Status.TODO)).thenReturn(List.of(entity));
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        List<TodoResponse> result = service.getTasksByStatus(Status.TODO);
+
+        assertThat(result).containsExactly(response);
+    }
+
+    @Test
+    void updateTaskBySuccess() {
+        UpdateTodoRequest todoRequest = new UpdateTodoRequest();
+
+        TodoEntity entity = new TodoEntity();
+        entity.setId(1L);
+
+        TodoResponse response = new TodoResponse();
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(entity)).thenReturn(entity);
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        TodoResponse result = service.updateTaskById(1L, todoRequest);
+
+        assertThat(result).isEqualTo(response);
+        verify(repository).save(entity);
+
+    }
+
+    @Test
+    void updateTaskInvalidId() {
+        UpdateTodoRequest todoRequest = new UpdateTodoRequest();
+
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(TodoNotFoundException.class, () -> service.updateTaskById(99L, todoRequest));
+    }
+
+    @Test
+    void updateTaskInvalidStatus() {
+        UpdateTodoRequest todoRequest = new UpdateTodoRequest();
+
         TodoEntity entity = new TodoEntity();
         entity.setId(1L);
         entity.setStatus(Status.DONE);
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
-        UpdateTaskRequest request = new UpdateTaskRequest();
+        assertThrows(TodoAlreadyCompletedException.class, () -> service.updateTaskById(1L, todoRequest));
 
-        assertThrows(TaskAlreadyCompletedException.class, () -> service.updateTaskById(1L, request));
     }
 
     @Test
-    void testFindTaskByIdNotFound() {
-        when(repository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(TaskNotFoundException.class, () -> service.findTaskById(99L));
-    }
-
-    @Test
-    void testDeleteTaskNotFound() {
-        when(repository.existsById(99L)).thenReturn(false);
-
-        assertThrows(TaskNotFoundException.class, () -> service.deleteTaskById(99L));
-    }
-
-    @Test
-    void testCreateTaskSuccess() {
-        CreateTaskRequest request = new CreateTaskRequest();
-        request.setTitle("Valid Task");
-        request.setDescription("desc");
-        request.setDueDate(LocalDate.now().plusDays(1));
-
+    void findTaskByIdSuccess() {
         TodoEntity entity = new TodoEntity();
         entity.setId(1L);
-        entity.setTitle("Valid Task");
-        entity.setDescription("desc");
-        entity.setStatus(Status.TODO);
-        entity.setCreatedAt(LocalDateTime.now());
-        entity.setDueDate(request.getDueDate());
 
-        when(mapper.fromCreateTaskRequest(request)).thenReturn(entity);
-        when(repository.save(any(TodoEntity.class))).thenReturn(entity);
-        when(mapper.toResponse(entity)).thenReturn(new TaskResponse());
+        TodoResponse response = new TodoResponse();
 
-        TaskResponse response = service.createTask(request);
-        assertThat(response).isNotNull();
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        TodoResponse result = service.findTaskById(1L);
+
+        assertThat(result).isEqualTo(response);
+        verify(repository).findById(1L);
+
     }
+
+    @Test
+    void findTaskByIdInvalidId() {
+
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(TodoNotFoundException.class, () -> service.findTaskById(99L));
+    }
+
+    @Test
+    void deleteTaskSuccess() {
+        service.deleteTaskById(1L);
+        verify(repository).deleteById(1L);
+    }
+
+    @Test
+     void getTaskOrderByStatusSuccess() {
+       TodoEntity entity = new TodoEntity();
+       TodoResponse response = new TodoResponse();
+
+       when(repository.findAllByOrderByStatus()).thenReturn(List.of(entity));
+       when(mapper.toResponse(entity)).thenReturn(response);
+
+       List<TodoResponse> result = service.getTasksOrderBy("status");
+       assertThat(result).containsExactly(response);
+       verify(repository).findAllByOrderByStatus();
+    }
+
+    @Test
+    void getTaskOrderByDueDateSuccess() {
+        TodoEntity entity  = new TodoEntity();
+        TodoResponse response = new TodoResponse();
+
+        when(repository.findAllByOrderByDueDate()).thenReturn(List.of(entity));
+        when(mapper.toResponse(entity)).thenReturn(response);
+
+        List<TodoResponse> result = service.getTasksOrderBy("dueDate");
+        assertThat(result).containsExactly(response);
+        verify(repository).findAllByOrderByDueDate();
+    }
+
+    @Test
+    void getTaskOrderByInvalid() {
+        assertThrows(IllegalArgumentException.class, () -> service.getTasksOrderBy("invalid"));
+    }
+
+
 }

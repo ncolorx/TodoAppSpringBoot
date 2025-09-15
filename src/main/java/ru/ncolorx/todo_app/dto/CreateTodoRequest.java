@@ -1,4 +1,4 @@
-package ru.ncolorx.todo_app.DTO;
+package ru.ncolorx.todo_app.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class CreateTaskRequest {
+public class CreateTodoRequest {
 
     private String description;
     private String title;

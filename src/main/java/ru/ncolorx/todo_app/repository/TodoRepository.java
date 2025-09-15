@@ -1,8 +1,8 @@
-package ru.ncolorx.todo_app.Repository;
+package ru.ncolorx.todo_app.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.ncolorx.todo_app.Enum.Status;
-import ru.ncolorx.todo_app.Entity.TodoEntity;
+import ru.ncolorx.todo_app.enums.Status;
+import ru.ncolorx.todo_app.entity.TodoEntity;
 
 
 import java.util.List;
