@@ -82,7 +82,7 @@ public class TodoService {
         return switch (order) {
             case "dueDate" -> repository.findAllByOrderByDueDate().stream().map(mapper::toResponse).toList();
             case "status" -> repository.findAllByOrderByStatus().stream().map(mapper::toResponse).toList();
-            default -> throw new IllegalArgumentException("Неизвестная сортировка: " + order);
+            default -> throw new InvalidTodoException("Неизвестная сортировка: " + order);
         };
     }
 }

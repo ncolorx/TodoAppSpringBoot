@@ -216,7 +216,7 @@ public class TodoServiceTest {
 
     @Test
     void getTaskOrderByInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> service.getTasksOrderBy("invalid"));
+        assertThrows(InvalidTodoException.class, () -> service.getTasksOrderBy("invalid"));
     }
 
 
